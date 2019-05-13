@@ -59,13 +59,18 @@ namespace Lab3.CriticalSection
                     break;
                 }
             }
+            if ( isControlCapturedWhileSpin )
+                return true;
+            Thread.Sleep( 10 ); // требование задания
 
-            if ( !isControlCapturedWhileSpin )
-            {
-                Thread.Sleep( 10 );
-            }
+            double timeoutLeft = beginingTime.AddMilliseconds( timeout ).Subtract( DateTime.UtcNow ).TotalMilliseconds;
+            if ( timeoutLeft <= 0 )
+                return false;
 
-            return isControlCapturedWhileSpin;
+            if ( _waitHandler.WaitOne( ( int )timeoutLeft ) )
+                return true;
+
+            return false;
         }
 
         public void Dispose()
