@@ -10,20 +10,15 @@ namespace Lab3.CriticalSection
 
         public void Enter()
         {
-            bool isControlCapturedWhileSpin = false;
-            for ( int i = 0; i < _spinCount; i++ )
+            while ( true )
             {
-                if ( _waitHandler.WaitOne( 10 ) )
+                for ( int i = 0; i < _spinCount; i++ )
                 {
-                    isControlCapturedWhileSpin = true;
-                    break;
+                    if ( _waitHandler.WaitOne( 10 ) )
+                        return;
                 }
-            }
 
-            if ( !isControlCapturedWhileSpin )
-            {
-                Thread.Sleep( 10 ); // требование задания
-                _waitHandler.WaitOne();
+                Thread.Sleep( 10 );
             }
         }
 
@@ -45,30 +40,18 @@ namespace Lab3.CriticalSection
             if ( timeout < 0 )
                 throw new ArgumentOutOfRangeException();
 
-            var beginingTime = DateTime.UtcNow;
-            var isControlCapturedWhileSpin = false;
-            for ( int i = 0; i < _spinCount; i++ )
+            var timeoutEndingTime = DateTime.UtcNow.AddMilliseconds( timeout );
+            do
             {
-                if ( _waitHandler.WaitOne( 10 ) )
+                for ( int i = 0; i < _spinCount; i++ )
                 {
-                    isControlCapturedWhileSpin = true;
-                    break;
+                    if ( _waitHandler.WaitOne( 10 ) )
+                        return true;
+                    if ( timeoutEndingTime <= DateTime.UtcNow )
+                        return false;
                 }
-                if ( beginingTime.AddMilliseconds( timeout ) <= DateTime.UtcNow )
-                {
-                    break;
-                }
-            }
-            if ( isControlCapturedWhileSpin )
-                return true;
-            Thread.Sleep( 10 ); // требование задания
-
-            double timeoutLeft = beginingTime.AddMilliseconds( timeout ).Subtract( DateTime.UtcNow ).TotalMilliseconds;
-            if ( timeoutLeft <= 0 )
-                return false;
-
-            if ( _waitHandler.WaitOne( ( int )timeoutLeft ) )
-                return true;
+                Thread.Sleep( 10 ); // требование задания
+            } while ( timeoutEndingTime > DateTime.UtcNow );
 
             return false;
         }
