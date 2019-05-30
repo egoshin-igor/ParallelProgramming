@@ -28,6 +28,9 @@ namespace CurrencySaver.Adapters
 
         private List<CurrencyInfo> Convert( ExternalCurrencies externalCurrencies )
         {
+            if ( externalCurrencies == null )
+                return new List<CurrencyInfo>();
+
             return externalCurrencies.Valute.Values
                 .Select( e => new CurrencyInfo
                 {
